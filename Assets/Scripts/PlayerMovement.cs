@@ -6,9 +6,9 @@ using UnityEngine.InputSystem;
 public class PlayerMovement : MonoBehaviour
 {
     PlayerControl controls;
-    InputAction move;
 
     public CharacterController2D controller;
+    public Animator animator;
 
     float horizontalMove = 0;
     public float runSpeed = 40f;
@@ -18,7 +18,6 @@ public class PlayerMovement : MonoBehaviour
     private void Awake()
     {
         controls = new PlayerControl();
-        move = controls.Gameplay.Move;
     }
 
     // Update is called once per frame
@@ -26,12 +25,21 @@ public class PlayerMovement : MonoBehaviour
     {
         //Movement
         horizontalMove = controls.Gameplay.Move.ReadValue<float>() * runSpeed;
-        print("Horizontal move:" + horizontalMove);
+        animator.SetFloat("Speed", Mathf.Abs(horizontalMove));
         //Jump
         controls.Gameplay.Jump.performed += ctx => jump = true;
+        controls.Gameplay.Jump.performed += ctx => animator.SetBool("isJumping", true);
         //Crouching
         controls.Gameplay.Crouch.performed += ctx => crouch = true;
         controls.Gameplay.Crouch.canceled += ctx => crouch = false;
+    }
+    public void OnLanding()
+    {
+        animator.SetBool("isJumping", false);
+    }
+    public void OnCrouching(bool isCrouching)
+    {
+        animator.SetBool("isCrouching", isCrouching);
     }
     void FixedUpdate()
     {
