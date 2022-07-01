@@ -14,6 +14,7 @@ public class PlayerMovement : MonoBehaviour
     public float runSpeed = 40f;
     bool jump = false;
     bool crouch = false;
+    bool canCrouch = true;
 
     private void Awake()
     {
@@ -29,13 +30,18 @@ public class PlayerMovement : MonoBehaviour
         //Jump
         controls.Gameplay.Jump.performed += ctx => jump = true;
         controls.Gameplay.Jump.performed += ctx => animator.SetBool("isJumping", true);
+        controls.Gameplay.Jump.performed += ctx => canCrouch = false;
         //Crouching
-        controls.Gameplay.Crouch.performed += ctx => crouch = true;
-        controls.Gameplay.Crouch.canceled += ctx => crouch = false;
+        if (canCrouch)
+        {
+            controls.Gameplay.Crouch.performed += ctx => crouch = true;
+            controls.Gameplay.Crouch.canceled += ctx => crouch = false;
+        }
     }
     public void OnLanding()
     {
         animator.SetBool("isJumping", false);
+        canCrouch = true;
     }
     public void OnCrouching(bool isCrouching)
     {
@@ -48,6 +54,17 @@ public class PlayerMovement : MonoBehaviour
         jump = false;
     }
 
+    private void OnTriggerStay2D(Collider2D collision)
+    {
+        if(collision.CompareTag("Portal"))
+        {
+            //end level
+            controls.Gameplay.Disable();
+            collision.GetComponentInChildren<Animator>().SetTrigger("CloseDoor");
+            FindObjectOfType<ScreenTransition>().Transition("FadeIn", 3f);
+            gameObject.SetActive(false);
+        }
+    }
     private void OnEnable()
     {
         controls.Gameplay.Enable();
